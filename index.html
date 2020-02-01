@@ -5,6 +5,9 @@
     <title>CEH questions</title>
     <!--<script type="text/javascript" src="ceh.js"></script>-->
     <style>
+    div.hidden {
+      display: none
+    }
     .question {
       display: block;
       border: 1px solid black;
@@ -46,7 +49,6 @@
       top: 0;
       right: 0;
       width: 100%;
-      height: 65px;
       box-shadow: 0 8px 8px 0 rgba(0, 0, 0, 0.2);
     }
     header button {
@@ -55,13 +57,11 @@
     header p {
       margin: 10px 30px;
     }
-    #main {
-      margin-top: 80px;
-    }
     </style>
     <script>
     var develVar = "";
     var initializing = true;
+    var showAllQuestions = false;
     var data = JSON.parse(window.localStorage.getItem("data"));
     if (data == null) {
       data = [];
@@ -146,6 +146,14 @@
       }
       document.getElementById('correctCount').innerHTML = status[0].toString();
       document.getElementById('wrongCount').innerHTML = status[1].toString();
+      if (data == [] || showAllQuestions) {
+        return;
+      }
+      var currentQuestion = parseInt(status[0])+parseInt(status[1]);
+      document.querySelector('[questionId="'+currentQuestion.toString()+'"]').classList.remove("hidden");
+      if (currentQuestion > 1) {
+        document.querySelector('[questionId="'+(currentQuestion -2).toString()+'"]').classList.add("hidden");
+      }
     }
 
     function buttonSubmit() {
@@ -180,6 +188,10 @@
     }
 
     function displayQuestions() {
+      var mainDiv = document.getElementById("main");
+      initializing = true;
+      mainDiv.innerHTML = "";
+      mainDiv.style.marginTop = (document.getElementsByTagName("header")[0].offsetHeight+15).toString()+"px";
       for (var i = 0; i < data.length; i++) {
         var singleNode = document.createElement("div");
         var question = document.createElement("p");
@@ -197,9 +209,10 @@
         singleNode.setAttribute("questionId", i);
         singleNode.appendChild(question);
         singleNode.appendChild(possibilities);
-
-        var element = document.getElementById("main");
-        element.appendChild(singleNode);
+        if (!showAllQuestions) {
+          singleNode.classList.add("hidden");
+        }
+        mainDiv.appendChild(singleNode);
       }
       var answerList = getCookie("list").split('#');
       for (var i = 1; i < answerList.length; i++) {
@@ -218,6 +231,7 @@
         Correct: <span id="correctCount">0</span>
         Wrong: <span id="wrongCount">0</span>
         <button onclick="resetQuestions()">Reset questions</button>
+        <button onclick="showAllQuestions=!showAllQuestions;displayQuestions()">Show all</button>
         <!-- <button onclick="alert(getCookie('status'))">Check cookie</button> -->
         <input type="file" id="files" name="file" oninput="populateQuestions()" />
       </p>

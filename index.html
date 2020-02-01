@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CEH questions</title>
+    <!--<script type="text/javascript" src="ceh.js"></script>-->
+    <style>
+    .question {
+      display: block;
+      border: 1px solid black;
+      padding: 10px;
+      margin: 10px;
+    }
+    button {
+      margin: 5px;
+      background-color: white;
+      border: 1px solid black;
+      padding: 15px 32px;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+      display: inline-block;
+      box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    }
+    button:hover {
+      box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2);
+    }
+    button:disabled {
+      background-color: #b7b7b7;
+      box-shadow: 0 0 0 0 black;
+      color: white;
+      cursor: default;
+    }
+    button.correctAnswer {
+      background-color: #4CAF50; /* Green */
+    }
+    button.wrongAnswer {
+      background-color: red;
+    }
+    p {
+      font-weight: bold;
+    }
+    header {
+      position: fixed;
+      background-color: white;
+      top: 0;
+      right: 0;
+      width: 100%;
+      height: 65px;
+      box-shadow: 0 8px 8px 0 rgba(0, 0, 0, 0.2);
+    }
+    header button {
+      padding: 5px 8px;
+    }
+    header p {
+      margin: 10px 30px;
+    }
+    #main {
+      margin-top: 80px;
+    }
+    </style>
+    <script>
+    var develVar = "";
+    var initializing = true;
+    var data = JSON.parse(window.localStorage.getItem("data"));
+    if (data == null) {
+      data = [];
+    }
+
+    function populateQuestions() {
+      var files = document.getElementById('files').files;
+      if (!files.length) {
+        alert('Please select one file!');
+        return;
+      }
+      var reader = new FileReader();
+      reader.onloadend = function(evt) {
+        if (evt.target.readyState == FileReader.DONE) { // DONE == 2
+          console.log(evt.target.result);
+          data = JSON.parse(evt.target.result);
+          window.localStorage.setItem("data",JSON.stringify(data));
+          displayQuestions();
+        }
+      };
+      reader.readAsText(files[0]);
+    }
+
+    function getCookie(cname) {
+      var name = cname + "=";
+      var ca = document.cookie.split(';');
+      for(var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+          c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+          return c.substring(name.length, c.length);
+        }
+      }
+      return "0@0";
+    }
+
+    function setCookie(cname, cvalue) {
+      var exdays = 30;
+      var d = new Date();
+      d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+      document.cookie = cname + "=" + cvalue + ";expires="+d.toUTCString();
+    }
+
+    function resetQuestions() {
+      if (!confirm("If you continue, your progress will be completely lost. Are you sure?")) {
+        return;
+      }
+      setCookie("status", "");
+      setCookie("list", "");
+      window.localStorage.removeItem("data");
+      location.reload();
+    }
+
+    function addToCookie(newAnswer, correct) {
+      var list = getCookie("list");
+      var status = getCookie("status");
+      if (status == "") {
+        status = ["0", "0"];
+      } else {
+        status = status.split('@');
+      }
+      var correctAnswers = status[0];
+      var wrongAnswers = status[1];
+      if (correct) { 
+        correctAnswers++;
+      } else {
+        wrongAnswers++;
+      }
+      setCookie("list",list + '#' + newAnswer);
+      setCookie("status",correctAnswers.toString() + '@' + wrongAnswers.toString());
+      showCounts();
+    }
+
+    function showCounts() {
+      var status = getCookie("status");
+      if (status == "") {
+        status = ["0", "0"];
+      } else {
+        status = status.split('@');
+      }
+      document.getElementById('correctCount').innerHTML = status[0].toString();
+      document.getElementById('wrongCount').innerHTML = status[1].toString();
+    }
+
+    function buttonSubmit() {
+      var questionNode = this.parentElement.parentElement;
+      var questionId=questionNode.getAttribute("questionId");
+      var correct = data[questionId].answer == this.getAttribute("answer");
+      if (!initializing) {
+        addToCookie(questionId + "*" + this.getAttribute("answer"), correct);
+      }
+      if (correct) {
+        this.classList.add("correctAnswer");
+      } else {
+        this.classList.add("wrongAnswer");
+      }
+      var buttons = questionNode.querySelectorAll("button");
+      for (var i = 0; i < buttons.length; i++) {
+        buttons[i].setAttribute("disabled", "true");
+        if (data[questionId].answer == buttons[i].getAttribute("answer")) {
+          buttons[i].classList.add("correctAnswer");
+        }
+      }
+      if (data[questionId].explanation != "") {
+        var explanation = document.createElement("p");
+        explanation.appendChild(document.createTextNode(data[questionId].explanation));
+        questionNode.appendChild(explanation);
+      }
+      if (data[questionId].references != "") {
+        var references = document.createElement("p");
+        references.appendChild(document.createTextNode(data[questionId].references));
+        questionNode.appendChild(references);
+      }
+    }
+
+    function displayQuestions() {
+      for (var i = 0; i < data.length; i++) {
+        var singleNode = document.createElement("div");
+        var question = document.createElement("p");
+        question.appendChild(document.createTextNode(i.toString() + ". " + data[i].question));
+        var possibilities = document.createElement("div");
+        lines = data[i].possibilities.split('\n');
+        for (var j = 0; j < lines.length; j++) {
+          var radio = document.createElement("button");
+          radio.setAttribute("answer", String.fromCharCode(65+j));
+          radio.onclick = buttonSubmit;
+          radio.appendChild(document.createTextNode(lines[j]));
+          possibilities.appendChild(radio);
+        }
+        singleNode.setAttribute("class", "question");
+        singleNode.setAttribute("questionId", i);
+        singleNode.appendChild(question);
+        singleNode.appendChild(possibilities);
+
+        var element = document.getElementById("main");
+        element.appendChild(singleNode);
+      }
+      var answerList = getCookie("list").split('#');
+      for (var i = 1; i < answerList.length; i++) {
+        var answerParts = answerList[i].split('*');
+        var singleNode = document.querySelector('[questionId="'+answerParts[0]+'"');
+        singleNode.querySelector('[answer="'+answerParts[1]+'"').click();
+      }
+      showCounts();
+      initializing = false;
+    }
+    </script>
+  </head>
+  <body onload="displayQuestions()">
+    <header>
+      <p>
+        Correct: <span id="correctCount">0</span>
+        Wrong: <span id="wrongCount">0</span>
+        <button onclick="resetQuestions()">Reset questions</button>
+        <!-- <button onclick="alert(getCookie('status'))">Check cookie</button> -->
+        <input type="file" id="files" name="file" oninput="populateQuestions()" />
+      </p>
+    </header>
+    <div id=main>
+    </div>
+  </body>
+</html>
+
+

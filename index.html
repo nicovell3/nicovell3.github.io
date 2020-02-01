@@ -3,60 +3,62 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CEH questions</title>
-    <!--<script type="text/javascript" src="ceh.js"></script>-->
     <style>
-    div.hidden {
-      display: none
-    }
-    .question {
-      display: block;
-      border: 1px solid black;
-      padding: 10px;
-      margin: 10px;
-    }
-    button {
-      margin: 5px;
-      background-color: white;
-      border: 1px solid black;
-      padding: 15px 32px;
-      text-align: center;
-      text-decoration: none;
-      cursor: pointer;
-      display: inline-block;
-      box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-    }
-    button:hover {
-      box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2);
-    }
-    button:disabled {
-      background-color: #b7b7b7;
-      box-shadow: 0 0 0 0 black;
-      color: white;
-      cursor: default;
-    }
-    button.correctAnswer {
-      background-color: #4CAF50; /* Green */
-    }
-    button.wrongAnswer {
-      background-color: red;
-    }
-    p {
-      font-weight: bold;
-    }
-    header {
-      position: fixed;
-      background-color: white;
-      top: 0;
-      right: 0;
-      width: 100%;
-      box-shadow: 0 8px 8px 0 rgba(0, 0, 0, 0.2);
-    }
-    header button {
-      padding: 5px 8px;
-    }
-    header p {
-      margin: 10px 30px;
-    }
+      * {
+        font-family: Arial, sans-serif;
+      }
+      div.hidden {
+        display: none
+      }
+      .question {
+        display: block;
+        border: 1px solid black;
+        padding: 10px;
+        margin: 10px;
+      }
+      button {
+        margin: 5px;
+        background-color: white;
+        border: 1px solid black;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        cursor: pointer;
+        display: inline-block;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+      }
+      button:hover {
+        box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2);
+      }
+      button:disabled {
+        background-color: #b7b7b7;
+        box-shadow: 0 0 0 0 black;
+        color: white;
+        cursor: default;
+      }
+      button.correctAnswer {
+        background-color: #4CAF50; /* Green */
+      }
+      button.wrongAnswer {
+        background-color: red;
+      }
+      p {
+        font-weight: bold;
+      }
+      header {
+        position: fixed;
+        background-color: white;
+        top: 0;
+        right: 0;
+        width: 100%;
+        box-shadow: 0 8px 8px 0 rgba(0, 0, 0, 0.2);
+      }
+      header button {
+        padding: 5px 8px;
+      }
+      header p {
+        margin: 10px 30px;
+      }
     </style>
     <script>
     var develVar = "";

@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="white" />
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon.png">
     <title>CEH questions</title>
     <style>
       * {
@@ -64,6 +67,20 @@
     var develVar = "";
     var initializing = true;
     var showAllQuestions = false;
+
+    //PWA handing
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js').then(function(registration) {
+          // Registration was successful
+          console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        }, function(err) {
+          // registration failed :(
+          console.log('ServiceWorker registration failed: ', err);
+        });
+      });
+    }
+
     var data = JSON.parse(window.localStorage.getItem("data"));
     if (data == null) {
       data = [];
@@ -148,9 +165,10 @@
       }
       document.getElementById('correctCount').innerHTML = status[0].toString();
       document.getElementById('wrongCount').innerHTML = status[1].toString();
-      if (data == [] || showAllQuestions) {
+      if (data.length == 0 || showAllQuestions) {
         return;
       }
+      console.log(data);
       var currentQuestion = parseInt(status[0])+parseInt(status[1]);
       document.querySelector('[questionId="'+currentQuestion.toString()+'"]').classList.remove("hidden");
       if (currentQuestion > 1) {

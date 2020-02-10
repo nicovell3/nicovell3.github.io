@@ -126,6 +126,19 @@
       document.cookie = cname + "=" + cvalue + ";expires="+d.toUTCString();
     }
 
+    function downloadAsFile(name) {
+      var element = document.createElement('a');
+      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(window.localStorage.getItem(name)));
+      element.setAttribute('download', name+'.json');
+
+      element.style.display = 'none';
+      document.body.appendChild(element);
+
+      element.click();
+
+      document.body.removeChild(element);
+    }
+
     function resetQuestions() {
       if (!confirm("If you continue, your progress will be completely lost. Are you sure?")) {
         return;
@@ -151,8 +164,17 @@
       } else {
         wrongAnswers++;
       }
-      setCookie("list",list + '#' + newAnswer);
-      setCookie("status",correctAnswers.toString() + '@' + wrongAnswers.toString());
+      list += '#' + newAnswer;
+      setCookie("list", list);
+      setCookie("status", correctAnswers.toString() + '@' + wrongAnswers.toString());
+      window.localStorage.setItem("status",JSON.stringify([correctAnswers, wrongAnswers]));
+      var tempList = list.split('#');
+      var storageList = [];
+      for (var i = 1; i < tempList.length; i++) {
+        var currentAnswer = tempList[i].split('*')
+        storageList[currentAnswer[0]] = currentAnswer[1];
+      }
+      window.localStorage.setItem("list",JSON.stringify(storageList));
       showCounts();
     }
 
@@ -252,13 +274,16 @@
         Wrong: <span id="wrongCount">0</span>
         <button onclick="resetQuestions()">Reset questions</button>
         <button onclick="showAllQuestions=!showAllQuestions;displayQuestions()">Show all</button>
-        <!-- <button onclick="alert(getCookie('status'))">Check cookie</button> -->
+        <select id="fileSelect">
+          <option value="data">Data</option>
+          <option value="list">List</option>
+          <option value="status">Status</option>
+        </select>
         <input type="file" id="files" name="file" oninput="populateQuestions()" />
+        <button onclick="downloadAsFile(document.getElementById('fileSelect').value)">Backup</button>
       </p>
     </header>
     <div id=main>
     </div>
   </body>
 </html>
-
-

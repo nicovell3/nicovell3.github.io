@@ -67,28 +67,61 @@
       }
     </style>
     <script>
-      function getStorage(name) {
-        var output = JSON.parse(window.localStorage.getItem(name));
-        if (output != null) {
-          return output;
+      "use strict";
+      var singleton = {
+        'data': [], //Data stores questions
+        'list': [], //List stores the selected answer
+        'config': {
+          'showAllQuestions': false,
+          'showAllControls': false
         }
-        if (name == "status") {
-          return [0,0];
-        } else {
-          return [];
-        }
-      }
-
-      function setStorage(name, value) {
-        window.localStorage.setItem(name, JSON.stringify(value));
-        console.log("written: "+name);
-      }
-
+      };
+      var place = {
+        'current': 0,
+        'correct': 0,
+        'failed': 0
+      };
       var develVar = "";
       var initializing = true;
-      var showAllQuestions = false;
-      var showAllControls = false;
-      var data = getStorage("data");
+
+      function reloadStorage() {
+        var output = JSON.parse(window.localStorage.getItem("singleton"));
+        if (output != null) {
+          singleton = output;
+        } else {
+          singleton = {
+            'data': [], //Data stores questions
+            'list': [], //List stores the selected answer
+            'config': {
+              'showAllQuestions': false,
+              'showAllControls': false
+            }
+          };
+        }
+        place = {
+          'current': 0,
+          'correct': 0,
+          'failed': 0
+        };
+        var list = singleton.list;
+        var data = singleton.data;
+        for (var i = 0; i < list.length; i++) {
+          if (list[i] == undefined) {
+            continue;
+          }
+          if (list[i] == data[i].answer) {
+            place.correct++;
+          } else {
+            place.failed++;
+          }
+        }
+        place.current = list.length   ;
+      }
+
+      function saveStorage() {
+        window.localStorage.setItem("singleton", JSON.stringify(singleton));
+        console.log("written: storage");
+      }
 
       //PWA handing
       if ('serviceWorker' in navigator) {
@@ -113,25 +146,26 @@
       }
 
       function toggleControlsShow() {
-        if (showAllControls) {
-          document.getElementById('allControls').style.display='none';
-        } else {
-          document.getElementById('allControls').style.display='block';
-        }
-        showAllControls=!showAllControls;
+        singleton.config.showAllControls=!singleton.config.showAllControls;
+        refreshControls();
       }
 
-      function downloadAsFile(name) {
+      function toggleQuestionsShow() {
+        singleton.config.showAllQuestions=!singleton.config.showAllQuestions;
+        refreshPage();
+      }
+
+      function downloadAsFile() {
         var element = document.createElement('a');
-        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(window.localStorage.getItem(name)));
-        element.setAttribute('download', name+'.json');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(window.localStorage.getItem(singleton)));
+        element.setAttribute('download', 'singleton.json');
         element.style.display = 'none';
         document.body.appendChild(element);
         element.click();
         document.body.removeChild(element);
       }
 
-      function uploadFile(name) {
+      function uploadFile() {
         var files = document.getElementById('files').files;
         if (!files.length) {
           alert('Please select one file!');
@@ -140,124 +174,126 @@
         var reader = new FileReader();
         reader.onloadend = function(evt) {
           if (evt.target.readyState == FileReader.DONE) {
-            fileContents = JSON.parse(evt.target.result); // Check we can parse the JSON
-            setStorage(name, fileContents);
-            if (name == "data") {
-              data = fileContents;
-            }
-            displayQuestions();
+            var fileContents = JSON.parse(evt.target.result); // Check we can parse the JSON
+            singleton = fileContents; 
+            saveStorage();
+            initialize();
           }
         };
         reader.readAsText(files[0]);
       }
 
       function resetQuestions() {
-        if (!confirm("If you continue, your progress will be completely lost. Are you sure?")) {
+        if (!confirm("If you continue, questions and progress will be completely lost. Are you sure?")) {
           return;
         }
-        window.localStorage.removeItem("status");
-        window.localStorage.removeItem("list");
-        window.localStorage.removeItem("data");
+        window.localStorage.removeItem("singleton");
         location.reload();
       }
 
-      function addToCookie(questionId, answer, correct) {
-        var list = getStorage("list")
-        var status = getStorage("status");
+      function answerQuestion(questionId, answer) {
+        var correct = singleton.data[questionId].answer == answer;
         if (correct) { 
-          status[0]++;
+          place.correct++;
         } else {
-          status[1]++;
+          place.failed++;
         }
-        list[questionId] = answer;
-        setStorage("list", list);
-        setStorage("status", status);
-        showCounts();
-      }
-
-      function showCounts() {
-        var status = getStorage("status");
-        document.getElementById('correctCount').innerHTML = status[0].toString();
-        document.getElementById('wrongCount').innerHTML = status[1].toString();
-        if (data.length == 0 || showAllQuestions) {
-          return;
-        }
-        var currentQuestion = status[0]+status[1];
-        document.querySelector('[questionId="'+currentQuestion.toString()+'"]').classList.remove("hidden");
-        if (currentQuestion > 1) {
-          document.querySelector('[questionId="'+(currentQuestion -2).toString()+'"]').classList.add("hidden");
-        }
+        place.current++;
+        singleton.list[questionId] = answer;
+        saveStorage();
+        refreshPage();
       }
 
       function buttonSubmit() {
         var questionNode = this.parentElement.parentElement;
-        var questionId=questionNode.getAttribute("questionId");
-        var correct = data[questionId].answer == this.getAttribute("answer");
-        if (!initializing) {
-          addToCookie(questionId, this.getAttribute("answer"), correct);
+        var questionId = questionNode.getAttribute("questionId");
+        answerQuestion(questionId, this.getAttribute("answer"));
+      }
+
+      function showQuestion(mainDiv, questionId) {
+        var givenAnswer = singleton.list[questionId];
+        console.log(questionId+" "+givenAnswer)
+        var singleNode = document.createElement("div");
+        var question = document.createElement("p");
+        question.appendChild(document.createTextNode(questionId.toString() + ". " + singleton.data[questionId].question));
+        var possibilities = document.createElement("div");
+        var lines = singleton.data[questionId].possibilities.split('\n');
+        var buttons = [];
+        for (var j = 0; j < lines.length; j++) {
+          var button = document.createElement("button");
+          button.setAttribute("answer", String.fromCharCode(65+j));
+          button.onclick = buttonSubmit;
+          button.appendChild(document.createTextNode(lines[j]));
+          buttons[j] = button;
+          possibilities.appendChild(button);
         }
-        if (correct) {
-          this.classList.add("correctAnswer");
-        } else {
-          this.classList.add("wrongAnswer");
-        }
-        var buttons = questionNode.querySelectorAll("button");
-        for (var i = 0; i < buttons.length; i++) {
-          buttons[i].setAttribute("disabled", "true");
-          if (data[questionId].answer == buttons[i].getAttribute("answer")) {
-            buttons[i].classList.add("correctAnswer");
+        singleNode.setAttribute("class", "question");
+        singleNode.setAttribute("questionId", questionId);
+        singleNode.appendChild(question);
+        singleNode.appendChild(possibilities);
+        if (givenAnswer != undefined) {
+          for (var i = 0; i < buttons.length; i++) {
+            buttons[i].setAttribute("disabled", "true");
+            if (singleton.data[questionId].answer == buttons[i].getAttribute("answer")) {
+              buttons[i].classList.add("correctAnswer");
+            } else if (buttons[i].getAttribute("answer") == givenAnswer) {
+              buttons[i].classList.add("wrongAnswer");
+            }
+          }
+
+          if (singleton.data[questionId].explanation != "") {
+            var explanation = document.createElement("p");
+            explanation.appendChild(document.createTextNode(singleton.data[questionId].explanation));
+            singleNode.appendChild(explanation);
+          }
+          if (singleton.data[questionId].references != "") {
+            var references = document.createElement("p");
+            var link = document.createElement("a");
+            link.setAttribute("href", singleton.data[questionId].references);
+            link.setAttribute("target", "_blank");
+            link.appendChild(document.createTextNode(singleton.data[questionId].references));
+            references.appendChild(link);
+            singleNode.appendChild(references);
           }
         }
-        if (data[questionId].explanation != "") {
-          var explanation = document.createElement("p");
-          explanation.appendChild(document.createTextNode(data[questionId].explanation));
-          questionNode.appendChild(explanation);
-        }
-        if (data[questionId].references != "") {
-          var references = document.createElement("p");
-          references.appendChild(document.createTextNode(data[questionId].references));
-          questionNode.appendChild(references);
+        mainDiv.appendChild(singleNode);
+      }
+
+      function refreshControls() {
+        if (singleton.config.showAllControls) {
+          document.getElementById('allControls').style.display='none';
+        } else {
+          document.getElementById('allControls').style.display='block';
         }
       }
 
-      function displayQuestions() {
+      function refreshPage() {
         var mainDiv = document.getElementById("main");
-        initializing = true;
         mainDiv.innerHTML = "";
         mainDiv.style.marginTop = (document.getElementsByTagName("header")[0].offsetHeight+15).toString()+"px";
-        for (var i = 0; i < data.length; i++) {
-          var singleNode = document.createElement("div");
-          var question = document.createElement("p");
-          question.appendChild(document.createTextNode(i.toString() + ". " + data[i].question));
-          var possibilities = document.createElement("div");
-          lines = data[i].possibilities.split('\n');
-          for (var j = 0; j < lines.length; j++) {
-            var radio = document.createElement("button");
-            radio.setAttribute("answer", String.fromCharCode(65+j));
-            radio.onclick = buttonSubmit;
-            radio.appendChild(document.createTextNode(lines[j]));
-            possibilities.appendChild(radio);
+        if (singleton.config.showAllQuestions) {
+          for (var i = 0; i < singleton.data.length; i++) {
+            showQuestion(mainDiv, i);
           }
-          singleNode.setAttribute("class", "question");
-          singleNode.setAttribute("questionId", i);
-          singleNode.appendChild(question);
-          singleNode.appendChild(possibilities);
-          if (!showAllQuestions) {
-            singleNode.classList.add("hidden");
+        } else if (singleton.data.length > 0) {
+          console.log(place.current);
+          if (place.current > 0) {
+            showQuestion(mainDiv, place.current-1);
           }
-          mainDiv.appendChild(singleNode);
+          showQuestion(mainDiv, place.current);
         }
-        var answerList = getStorage("list");
-        for (var i = 0; i < answerList.length; i++) {
-          var singleNode = document.querySelector('[questionId="'+i.toString()+'"');
-          singleNode.querySelector('[answer="'+answerList[i]+'"').click();
-        }
-        showCounts();
-        initializing = false;
+        document.getElementById('correctCount').innerHTML = place.correct.toString();
+        document.getElementById('wrongCount').innerHTML = place.failed.toString();
+      }
+
+      function initialize() {
+        reloadStorage();
+        refreshPage();
+        refreshControls();
       }
     </script>
   </head>
-  <body onload="displayQuestions()">
+  <body onload="initialize()">
     <header>
       <p>
         Correct: <span id="correctCount">0</span>
@@ -265,16 +301,11 @@
         <button onclick="toggleControlsShow()">Toggle controls</button>
       </p>
       <p id="allControls" style="display: none">
-        <select id="fileSelect">
-          <option value="data">Data</option>
-          <option value="list">List</option>
-          <option value="status">Status</option>
-        </select>
-        <input type="file" id="files" name="file" oninput="uploadFile(document.getElementById('fileSelect').value)" />
-        <button onclick="downloadAsFile(document.getElementById('fileSelect').value)">Backup</button>
+        <input type="file" id="files" name="file" oninput="uploadFile()" />
+        <button onclick="downloadAsFile()">Backup</button>
         <button onclick="refreshCache()">Refresh cache</button>
         <button onclick="resetQuestions()">Reset questions</button>
-        <button onclick="showAllQuestions=!showAllQuestions;displayQuestions()">Show all questions</button>
+        <button onclick="toggleQuestionsShow()">Show all questions</button>
       </p>
     </header>
     <div id=main>

@@ -84,6 +84,13 @@
       header p {
         margin: 10px 30px;
       }
+      #navigation, .navigation input {
+        text-align: center;
+      }
+      #navigation input {
+        padding: 15px 32px;
+        width: 80px;
+      }
     </style>
     <script>
       "use strict";
@@ -359,19 +366,48 @@
           }
         } else if (singleton.data.length > 0) {
           console.log(place.current);
-          if (place.current > 0) {
-            showQuestion(mainDiv, place.current-1);
-          }
           showQuestion(mainDiv, place.current);
         }
         document.getElementById('correctCount').innerHTML = place.correct.toString();
         document.getElementById('wrongCount').innerHTML = place.failed.toString();
       }
 
+      function changeCurrentQuestion(newQuestionId) {
+        if (newQuestionId >= singleton.data.length || newQuestionId < 0) {
+          console.log("Question out of range");
+          return;
+        }
+        place.current = newQuestionId;
+        if (document.getElementById("navCurrentQuestion").value != place.current) {
+          document.getElementById("navCurrentQuestion").value = place.current;
+        }
+        refreshPage();
+      }
+
+      function refreshNavigation() {
+        var navNode = document.getElementById("navigation");
+        navNode.setAttribute("class", "navigation");
+        var buttonLeft = document.createElement("button");
+        buttonLeft.appendChild(document.createTextNode("<"));
+        buttonLeft.setAttribute("onclick", "changeCurrentQuestion(place.current-1)");
+        navNode.appendChild(buttonLeft);
+        var currentQuestion = document.createElement("input");
+        currentQuestion.setAttribute("type", "text");
+        currentQuestion.setAttribute("id", "navCurrentQuestion");
+        currentQuestion.setAttribute("value", place.current.toString());
+        currentQuestion.setAttribute("oninput", "changeCurrentQuestion(this.value)");
+        navNode.appendChild(currentQuestion);
+        var buttonRight = document.createElement("button");
+        buttonRight.appendChild(document.createTextNode(">"));
+        buttonRight.setAttribute("onclick", "changeCurrentQuestion(place.current+1)");
+        navNode.appendChild(buttonRight);
+      }
+
       function initialize() {
         reloadStorage();
         refreshPage();
         refreshControls();
+        refreshNavigation();
       }
     </script>
   </head>
@@ -392,7 +428,7 @@
         <button onclick="removeQuestion()">Remove current question</button>
       </p>
     </header>
-    <div id=main>
-    </div>
+    <div id="main"></div>
+    <div id="navigation"></div>
   </body>
 </html>

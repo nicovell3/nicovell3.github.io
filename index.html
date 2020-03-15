@@ -176,7 +176,7 @@
 
       function downloadAsFile() {
         var element = document.createElement('a');
-        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(window.localStorage.getItem(singleton)));
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(window.localStorage.getItem("singleton")));
         element.setAttribute('download', 'singleton.json');
         element.style.display = 'none';
         document.body.appendChild(element);

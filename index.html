@@ -22,6 +22,17 @@
         padding: 10px;
         margin: 10px;
       }
+      .editQuestion > * {
+        display: block;
+        width: 90%;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 5px;
+        margin-bottom: 5px;
+      }
+      .editQuestion textarea {
+        height: 100px;
+      }
       button {
         margin: 5px;
         background-color: white;
@@ -51,6 +62,14 @@
       p {
         font-weight: bold;
       }
+      pre {
+        overflow-x: auto;
+        white-space: pre-wrap;
+        white-space: -moz-pre-wrap;
+        white-space: -pre-wrap;
+        white-space: -o-pre-wrap;
+        word-wrap: break-word;
+      }
       header {
         position: fixed;
         background-color: white;
@@ -71,15 +90,14 @@
       var singleton = {
         'data': [], //Data stores questions
         'list': [], //List stores the selected answer
-        'config': {
-          'showAllQuestions': false,
-          'showAllControls': false
-        }
       };
       var place = {
         'current': 0,
         'correct': 0,
-        'failed': 0
+        'failed': 0,
+        'editMode': false,
+        'showAllQuestions': false,
+        'showAllControls': false
       };
       var develVar = "";
       var initializing = true;
@@ -92,10 +110,6 @@
           singleton = {
             'data': [], //Data stores questions
             'list': [], //List stores the selected answer
-            'config': {
-              'showAllQuestions': false,
-              'showAllControls': false
-            }
           };
         }
         place = {
@@ -146,12 +160,17 @@
       }
 
       function toggleControlsShow() {
-        singleton.config.showAllControls=!singleton.config.showAllControls;
+        place.showAllControls=!place.showAllControls;
         refreshControls();
       }
 
       function toggleQuestionsShow() {
-        singleton.config.showAllQuestions=!singleton.config.showAllQuestions;
+        place.showAllQuestions=!place.showAllQuestions;
+        refreshPage();
+      }
+
+      function toggleEditMode() {
+        place.editMode=!place.editMode;
         refreshPage();
       }
 
@@ -212,9 +231,8 @@
 
       function showQuestion(mainDiv, questionId) {
         var givenAnswer = singleton.list[questionId];
-        console.log(questionId+" "+givenAnswer)
         var singleNode = document.createElement("div");
-        var question = document.createElement("p");
+        var question = document.createElement("pre");
         question.appendChild(document.createTextNode(questionId.toString() + ". " + singleton.data[questionId].question));
         var possibilities = document.createElement("div");
         var lines = singleton.data[questionId].possibilities.split('\n');
@@ -259,8 +277,60 @@
         mainDiv.appendChild(singleNode);
       }
 
+      function showEditQuestion(mainDiv) {
+        var questionId = place.current;
+        var singleNode = document.createElement("div");
+        singleNode.setAttribute("class", "editQuestion");
+        var identifier = document.createElement("h2");
+        identifier.appendChild(document.createTextNode(questionId.toString()));
+        singleNode.appendChild(identifier);
+        var question = document.createElement("textarea");
+        question.setAttribute("id", "question");
+        question.setAttribute("placeholder", "Question");
+        question.appendChild(document.createTextNode(singleton.data[questionId].question));
+        singleNode.appendChild(question);
+        var possibilities = document.createElement("textarea");
+        possibilities.setAttribute("id", "possibilities");
+        possibilities.appendChild(document.createTextNode(singleton.data[questionId].possibilities));
+        singleNode.appendChild(possibilities);
+        var answer = document.createElement("input");
+        answer.setAttribute("type", "text");
+        answer.setAttribute("id", "answer");
+        answer.setAttribute("placeholder", "Answer");
+        answer.setAttribute("value", singleton.data[questionId].answer);
+        singleNode.appendChild(answer);
+        var explanation = document.createElement("textarea");
+        explanation.setAttribute("id", "explanation");
+        explanation.setAttribute("placeholder", "Explanation");
+        explanation.appendChild(document.createTextNode(singleton.data[questionId].explanation));
+        singleNode.appendChild(explanation);
+        var references = document.createElement("input");
+        references.setAttribute("type", "text");
+        references.setAttribute("id", "references");
+        references.setAttribute("placeholder", "References");
+        references.setAttribute("value", singleton.data[questionId].references);
+        singleNode.appendChild(references);
+        var submit = document.createElement("button");
+        submit.setAttribute("onclick", "editQuestion()");
+        submit.appendChild(document.createTextNode("Submit"));
+        singleNode.appendChild(submit);
+        mainDiv.appendChild(singleNode);
+      }
+
+      function editQuestion() {
+        if (!confirm("If you continue, this question will be changed and you won't be able to undo")) {
+          return;
+        }
+        var questionItems = ["question", "possibilities", "answer", "explanation", "references"];
+        for (var i = 0; i < questionItems.length; i++) {
+          singleton.data[place.current][questionItems[i]] = document.getElementById(questionItems[i]).value;
+        }
+        saveStorage();
+        refreshPage();
+      }
+
       function refreshControls() {
-        if (singleton.config.showAllControls) {
+        if (!place.showAllControls) {
           document.getElementById('allControls').style.display='none';
         } else {
           document.getElementById('allControls').style.display='block';
@@ -271,7 +341,9 @@
         var mainDiv = document.getElementById("main");
         mainDiv.innerHTML = "";
         mainDiv.style.marginTop = (document.getElementsByTagName("header")[0].offsetHeight+15).toString()+"px";
-        if (singleton.config.showAllQuestions) {
+        if (place.editMode) {
+          showEditQuestion(mainDiv);
+        } else if (place.showAllQuestions) {
           for (var i = 0; i < singleton.data.length; i++) {
             showQuestion(mainDiv, i);
           }
@@ -306,6 +378,7 @@
         <button onclick="refreshCache()">Refresh cache</button>
         <button onclick="resetQuestions()">Reset questions</button>
         <button onclick="toggleQuestionsShow()">Show all questions</button>
+        <button onclick="toggleEditMode()">Edit mode</button>
       </p>
     </header>
     <div id=main>

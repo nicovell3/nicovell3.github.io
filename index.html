@@ -59,7 +59,7 @@
       button.wrongAnswer {
         background-color: red;
       }
-      p {
+      p, pre {
         font-weight: bold;
       }
       pre {
@@ -211,22 +211,32 @@
       }
 
       function answerQuestion(questionId, answer) {
-        var correct = singleton.data[questionId].answer == answer;
-        if (correct) { 
+        if (singleton.data[questionId].answer == answer) { 
           place.correct++;
         } else {
           place.failed++;
         }
-        place.current++;
         singleton.list[questionId] = answer;
         saveStorage();
         refreshPage();
       }
 
+      function removeQuestion() {
+        var questionId = place.current;
+        if (!confirm("If you continue, this question will be deleted forever and you won't be able to undo")) {
+          return;
+        }
+        //Last answer is singleton.list.length-1
+        if (questionId < singleton.list.length) {
+          singleton.list.splice(questionId, 1);
+        }
+        singleton.data.splice(questionId, 1);
+        saveStorage();
+        refreshPage();
+      }
+
       function buttonSubmit() {
-        var questionNode = this.parentElement.parentElement;
-        var questionId = questionNode.getAttribute("questionId");
-        answerQuestion(questionId, this.getAttribute("answer"));
+        answerQuestion(this.parentElement.parentElement.getAttribute("questionId"), this.getAttribute("answer"));
       }
 
       function showQuestion(mainDiv, questionId) {
@@ -260,7 +270,7 @@
           }
 
           if (singleton.data[questionId].explanation != "") {
-            var explanation = document.createElement("p");
+            var explanation = document.createElement("pre");
             explanation.appendChild(document.createTextNode(singleton.data[questionId].explanation));
             singleNode.appendChild(explanation);
           }
@@ -379,6 +389,7 @@
         <button onclick="resetQuestions()">Reset questions</button>
         <button onclick="toggleQuestionsShow()">Show all questions</button>
         <button onclick="toggleEditMode()">Edit mode</button>
+        <button onclick="removeQuestion()">Remove current question</button>
       </p>
     </header>
     <div id=main>

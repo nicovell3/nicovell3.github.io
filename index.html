@@ -87,7 +87,7 @@
         white-space: -o-pre-wrap;
         word-wrap: break-word;
       }
-      #navigation, .navigation input {
+      #navigation, #navigation input {
         text-align: center;
       }
       #navigation input {
@@ -396,28 +396,13 @@
         }
         place.current = newQuestionId;
         if (document.getElementById("navCurrentQuestion").value != place.current) {
-          document.getElementById("navCurrentQuestion").value = place.current;
+          refreshNavigation();
         }
         refreshPage();
       }
 
       function refreshNavigation() {
-        var navNode = document.getElementById("navigation");
-        navNode.setAttribute("class", "navigation");
-        var buttonLeft = document.createElement("button");
-        buttonLeft.appendChild(document.createTextNode("<"));
-        buttonLeft.setAttribute("onclick", "changeCurrentQuestion(place.current-1)");
-        navNode.appendChild(buttonLeft);
-        var currentQuestion = document.createElement("input");
-        currentQuestion.setAttribute("type", "text");
-        currentQuestion.setAttribute("id", "navCurrentQuestion");
-        currentQuestion.setAttribute("value", place.current.toString());
-        currentQuestion.setAttribute("oninput", "changeCurrentQuestion(this.value)");
-        navNode.appendChild(currentQuestion);
-        var buttonRight = document.createElement("button");
-        buttonRight.appendChild(document.createTextNode(">"));
-        buttonRight.setAttribute("onclick", "changeCurrentQuestion(place.current+1)");
-        navNode.appendChild(buttonRight);
+        document.getElementById("navCurrentQuestion").value = place.current;
       }
 
       function initialize() {
@@ -450,6 +435,10 @@
       </p>
     </header>
     <div id="main"></div>
-    <div id="navigation"></div>
+    <div id="navigation">
+      <button onclick="changeCurrentQuestion(place.current-1)"><</button>
+      <input id="navCurrentQuestion" type="text" oninput="changeCurrentQuestion(this.value)" value="0"></input>
+      <button onclick="changeCurrentQuestion(place.current+1)">></button>
+    </div>
   </body>
 </html>

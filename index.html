@@ -69,9 +69,12 @@
       }
       button.correctAnswer {
         background-color: #4CAF50; /* Green */
+        color: white;
+
       }
       button.wrongAnswer {
         background-color: red;
+        color: white;
       }
       p, pre {
         font-weight: bold;
@@ -217,6 +220,20 @@
         location.reload();
       }
 
+      function addQuestion() {
+        singleton.data[singleton.data.length] = {
+          "question": "",
+          "possibilities": "",
+          "answer": "",
+          "explanation": "",
+          "references": ""
+        };
+        place.current = singleton.data.length - 1;
+        place.editMode = true;
+        refreshPage();
+        refreshNavigation();
+      }
+
       function removeQuestion() {
         var questionId = place.current;
         if (!confirm("If you continue, this question will be deleted forever and you won't be able to undo")) {
@@ -306,6 +323,7 @@
         singleNode.appendChild(question);
         var possibilities = document.createElement("textarea");
         possibilities.setAttribute("id", "possibilities");
+        possibilities.setAttribute("placeholder", "Possibilities");
         possibilities.appendChild(document.createTextNode(singleton.data[questionId].possibilities));
         singleNode.appendChild(possibilities);
         var answer = document.createElement("input");
@@ -421,11 +439,14 @@
         <input type="file" id="files" name="file" oninput="uploadFile()" />
         <button onclick="downloadAsFile()">Backup</button>
         <button onclick="refreshCache()">Refresh cache</button>
-        <button onclick="resetQuestions()">Reset questions</button>
-        <button onclick="resetAnswers()">Reset answers</button>
         <button onclick="toggleQuestionsShow()">Show all questions</button>
-        <button onclick="toggleEditMode()">Edit mode</button>
-        <button onclick="removeQuestion()">Remove current question</button>
+        <!-- Creator zone -->
+        <button onclick="toggleEditMode()" class="correctAnswer">Edit mode</button>
+        <button onclick="addQuestion()" class="correctAnswer">Add question</button>
+        <!-- Danger zone -->
+        <button onclick="resetQuestions()" class="wrongAnswer">Reset questions</button>
+        <button onclick="resetAnswers()" class="wrongAnswer">Reset answers</button>
+        <button onclick="removeQuestion()" class="wrongAnswer">Remove current question</button>
       </p>
     </header>
     <div id="main"></div>

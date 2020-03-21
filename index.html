@@ -67,10 +67,12 @@
       .editQuestion textarea {
         height: 100px;
       }
+      #correctCount {
+        color: #4CAF50;
+      }
       button.correctAnswer {
         background-color: #4CAF50; /* Green */
         color: white;
-
       }
       button.wrongAnswer {
         background-color: red;
@@ -384,8 +386,10 @@
           console.log(place.current);
           showQuestion(mainDiv, place.current);
         }
+        var totalCount = place.correct + place.failed;
         document.getElementById('correctCount').innerHTML = place.correct.toString();
-        document.getElementById('wrongCount').innerHTML = place.failed.toString();
+        document.getElementById('totalCount').innerHTML = totalCount.toString();
+        document.getElementById('countPercentage').innerHTML = Number.parseFloat(place.correct * 100 / totalCount).toFixed(2);
       }
 
       //Navigation
@@ -416,9 +420,9 @@
   <body onload="initialize()">
     <header>
       <p>
-        Correct: <span id="correctCount">0</span>
-        Wrong: <span id="wrongCount">0</span>
-        <button onclick="toggleControlsShow()">Toggle controls</button>
+        <span id="correctCount">0</span>/<span id="totalCount">0</span>
+        (<span id="countPercentage">0</span>%)
+        <button onclick="toggleControlsShow()">All controls</button>
       </p>
       <p id="allControls" style="display: none">
         <input type="file" id="files" name="file" oninput="uploadFile()" />

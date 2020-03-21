@@ -67,8 +67,11 @@
       .editQuestion textarea {
         height: 100px;
       }
-      #correctCount {
+      #correctCount, .goodPercentage {
         color: #4CAF50;
+      }
+      #wrongCount, .badPercentage {
+        color: red;
       }
       button.correctAnswer {
         background-color: #4CAF50; /* Green */
@@ -117,6 +120,7 @@
           'correct': 0,
           'failed': 0,
           'editMode': false,
+          'justOneEdit': false,
           'showAllQuestions': false,
           'showAllControls': false
         };
@@ -172,8 +176,9 @@
         refreshPage();
       }
 
-      function toggleEditMode() {
+      function toggleEditMode(justOne) {
         place.editMode=!place.editMode;
+        place.justOneEdit = justOne;
         refreshPage();
       }
 
@@ -361,6 +366,10 @@
           singleton.data[place.current][questionItems[i]] = document.getElementById(questionItems[i]).value;
         }
         saveStorage();
+        if (place.justOneEdit) {
+          place.justOneEdit = false;
+          place.editMode = false;
+        }
         refreshPage();
       }
 
@@ -386,10 +395,12 @@
           console.log(place.current);
           showQuestion(mainDiv, place.current);
         }
-        var totalCount = place.correct + place.failed;
+        var countPercentage = place.correct * 100 / (place.correct + place.failed);
+        var countPercentageElem = document.getElementById('countPercentage');
         document.getElementById('correctCount').innerHTML = place.correct.toString();
-        document.getElementById('totalCount').innerHTML = totalCount.toString();
-        document.getElementById('countPercentage').innerHTML = Number.parseFloat(place.correct * 100 / totalCount).toFixed(2);
+        document.getElementById('wrongCount').innerHTML = place.failed.toString();
+        countPercentageElem.innerHTML = Number.parseFloat(countPercentage).toFixed(2) + "%";
+        countPercentageElem.setAttribute("class", (countPercentage < 80 ? "badPercentage" : "goodPercentage") );
       }
 
       //Navigation
@@ -420,9 +431,10 @@
   <body onload="initialize()">
     <header>
       <p>
-        <span id="correctCount">0</span>/<span id="totalCount">0</span>
-        (<span id="countPercentage">0</span>%)
+        <span id="correctCount">0</span> - <span id="wrongCount">0</span>
+        (<span id="countPercentage">0</span>)
         <button onclick="toggleControlsShow()">All controls</button>
+        <button onclick="toggleEditMode(true)">Edit</button>
       </p>
       <p id="allControls" style="display: none">
         <input type="file" id="files" name="file" oninput="uploadFile()" />
@@ -430,7 +442,7 @@
         <button onclick="refreshCache()">Refresh cache</button>
         <button onclick="toggleQuestionsShow()">Show all questions</button>
         <!-- Creator zone -->
-        <button onclick="toggleEditMode()" class="correctAnswer">Edit mode</button>
+        <button onclick="toggleEditMode(false)" class="correctAnswer">Edit mode</button>
         <button onclick="addQuestion()" class="correctAnswer">Add question</button>
         <!-- Danger zone -->
         <button onclick="resetQuestions()" class="wrongAnswer">Reset questions</button>

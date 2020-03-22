@@ -392,7 +392,6 @@
             showQuestion(mainDiv, i);
           }
         } else if (singleton.data.length > 0) {
-          console.log(place.current);
           showQuestion(mainDiv, place.current);
         }
         var countPercentage = place.correct * 100 / (place.correct + place.failed);
@@ -406,7 +405,7 @@
       //Navigation
       function changeCurrentQuestion(newQuestionId) {
         if (newQuestionId >= singleton.data.length || newQuestionId < 0) {
-          console.log("Question out of range");
+          //console.log("Question out of range");
           return;
         }
         place.current = newQuestionId;

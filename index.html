@@ -50,6 +50,9 @@
       header p {
         margin: 10px 30px;
       }
+      #main {
+        margin-bottom: 70px;
+      }
       .question {
         display: block;
         border: 1px solid black;
@@ -92,6 +95,14 @@
         white-space: -o-pre-wrap;
         word-wrap: break-word;
       }
+      #navigation {
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        box-shadow: 0px 0px 8px 8px rgba(0, 0, 0, 0.2);
+        background: white;
+      }
       #navigation, #navigation input {
         text-align: center;
       }
@@ -128,7 +139,7 @@
         var data = singleton.data;
         for (var i = 0; i < list.length; i++) {
           if (list[i] == undefined) {
-            place.current = place.current != -1 ? i : place.current;
+            place.current = place.current == -1 ? i : place.current;
             continue;
           }
           if (list[i] == data[i].answer) {
@@ -137,7 +148,7 @@
             place.failed++;
           }
         }
-        place.current = place.current != -1 ? list.length : place.current;
+        place.current = place.current == -1 ? list.length : place.current;
       }
 
       function saveStorage() {

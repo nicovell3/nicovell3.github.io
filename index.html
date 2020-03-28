@@ -328,7 +328,7 @@
             var link = document.createElement("a");
             link.setAttribute("href", singleton.data[questionId].references);
             link.setAttribute("target", "_blank");
-            link.appendChild(document.createTextNode(singleton.data[questionId].references));
+            link.appendChild(document.createTextNode("Link to reference"));
             references.appendChild(link);
             singleNode.appendChild(references);
           }

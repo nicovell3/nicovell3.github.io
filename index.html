@@ -424,6 +424,7 @@
 
       //Navigation
       function changeCurrentQuestion(newQuestionId) {
+        newQuestionId = parseInt(newQuestionId);
         if (newQuestionId >= singleton.data.length || newQuestionId < 0) {
           //console.log("Question out of range");
           return;

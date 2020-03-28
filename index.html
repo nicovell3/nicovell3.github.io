@@ -153,6 +153,10 @@
           }
         }
         place.current = place.current == -1 ? list.length : place.current;
+        if (place.current == singleton.data.length) {
+          // Return to the first question if finished
+          place.current = 0;
+        }
       }
 
       function saveStorage() {
@@ -193,7 +197,7 @@
       }
 
       function toggleEditMode(justOne) {
-        place.editMode=!place.editMode;
+        place.editMode =! place.editMode;
         place.justOneEdit = justOne;
         refreshPage();
       }

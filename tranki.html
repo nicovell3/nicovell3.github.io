@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="white" />
+  <link rel="apple-touch-icon" href="/icon.png">
+  <title>Test de deportividad</title>
+  <style>
+    * {
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      height: 100%;
+    }
+
+    div.hidden {
+      display: none
+    }
+
+    button {
+      margin: 5px;
+      background-color: white;
+      border: 1px solid black;
+      padding: 15px 32px;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+      display: inline-block;
+      box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    button:hover {
+      box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    button:disabled {
+      background-color: #b7b7b7;
+      box-shadow: 0 0 0 0 black;
+      color: white;
+      cursor: default;
+    }
+
+    header {
+      position: fixed;
+      background-color: white;
+      top: 0;
+      right: 0;
+      width: 100%;
+      box-shadow: 0 8px 8px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    header button {
+      padding: 5px 8px;
+    }
+
+    header p,
+    header h1 {
+      margin: 10px 30px;
+    }
+
+    #main {
+      margin-bottom: 70px;
+    }
+
+    #main button {
+      display: block;
+      text-align: left;
+    }
+
+    .question {
+      display: block;
+      border: 1px solid black;
+      padding: 10px;
+      margin: 10px;
+    }
+
+    .editQuestion>* {
+      display: block;
+      width: 90%;
+      margin-left: auto;
+      margin-right: auto;
+      margin-top: 5px;
+      margin-bottom: 5px;
+    }
+
+    .editQuestion textarea {
+      height: 100px;
+    }
+
+    #correctCount,
+    .goodPercentage {
+      color: #4CAF50;
+    }
+
+    #wrongCount,
+    .badPercentage {
+      color: red;
+    }
+
+    button.correctAnswer {
+      background-color: #4CAF50;
+      /* Green */
+      color: white;
+    }
+
+    button.wrongAnswer {
+      background-color: red;
+      color: white;
+    }
+
+    p,
+    pre {
+      font-weight: bold;
+    }
+
+    pre {
+      overflow-x: auto;
+      white-space: pre-wrap;
+      white-space: -moz-pre-wrap;
+      white-space: -pre-wrap;
+      white-space: -o-pre-wrap;
+      word-wrap: break-word;
+    }
+
+    #navigation {
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      box-shadow: 0px 0px 8px 8px rgba(0, 0, 0, 0.2);
+      background: white;
+    }
+
+    #navigation,
+    #navigation input {
+      text-align: center;
+    }
+
+    #navigation input {
+      padding: 15px 32px;
+      width: 80px;
+    }
+  </style>
+  <script>
+    "use strict";
+
+    var defaultSingleton = { "data": [{ "question": "Faltan pocos metros para el final de una carrera de Maratón. Vas el segundo y ya no puedes alcanzar al primero. Sorprendentemente el rival se equivoca y se detiene antes de la meta. ¿Cómo actuarías?", "possibilities": "a) Seguiría corriendo para llegar el primero\nb) Le avisaría para que él se lleve la victoria\nc) Depende de la importancia del evento\nd) Hoy la suerte está conmigo. Me lo merezco", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "En una competición de tenis individual el contrario, al que le faltan un par de juegos para ganar el partido, se lesiona y no puede jugar con la misma intensidad. ¿Qué harías?", "possibilities": "a) Seguiría jugando con la misma intensidad. Es una competición y las lesiones también cuentan\nb) Bajaría el nivel para evitar aprovecharme de su lesión, pero intentaría ganar.\nc) Me dejaría ganar. La victoria ya estaba decantada y no me parece justo ganar así.\nd) Depende del tipo de competición. Si se tratase de una final profesional lucharía por ganar.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Pierdes una partida de mus en la que tu compañero no ha tenido su mejor día.  ¿cómo reaccionas?", "possibilities": "a) Me da igual, solo me gusta pasar el rato.\nb) Hago constar que mi compañero no ha estado bien. \nc) Echo la culpa a las cartas y a la suerte\nd) Me sienta mal perder, pero lo disimulo.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Estás jugando al mus y te das cuenta de que los contrarios han contado su jugada de menos. ¿cómo reaccionas?", "possibilities": "a) Les advierto para que otra vez cuenten mejor pero no les dejo sumar los tantos\nb) Les advierto y les permito sumar los tantos\nc) Guardo silencio y pienso que es problema de ellos\nd) Depende de cómo vaya la partida ", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Circulas con tu vehículo buscando estacionar. El de delante frena de golpe para aparcar en un sitio que te viene bien, pero necesita eches tu coche para atrás. ¿Con que opción te identificas más?", "possibilities": "a) Echo marcha atrás sin problema\nb) Reniego, pero echo marcha atrás. Me sienta muy mal que vaya a coger el sitio que era mio. \nc) No muevo el coche. Espero que el desista de coger ese sitio\nd) Me quedo quieto y toco el claxon para hacerle ver que el sitio es mío", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "En las derrotas deportivas, por lo general", "possibilities": "a) Te vas enfadado pensando en las cosas que has hecho mal.\nb) Felicitas al rival y piensas que ha merecido la victoria.\nc) Te da igual.\nd) Intentas ser positivo y superar pronto ese momento.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Cuando compites:", "possibilities": "a) Lo importante para ti es disfrutar del deporte.\nb) Piensas en estar concentrado y en hacer las cosas bien.\nc) Disfrutas solamente cuando ganas.\nd) Me enfado conmigo mismo si las cosas no salen como yo quiero.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Cuando compites en un deporte de equipo:", "possibilities": "a) Te molestan los errores de tus compañeros.\nb) Animas a tus compañeros, especialmente al que juega peor.\nc) Tu prioridad es disfrutar con los amigos.\nd) Me enfado con las injusticias arbitrales.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Cuando llegas tarde a una reunión:", "possibilities": "a) Te molesta quedar mal.\nb) Das explicaciones para que la gente que te ha esperado entienda el retraso.\nc) Pides disculpas por haber hecho esperar.\nd) Te da igual.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "En las reuniones de amigos cuando se habla de personas que no están presentes:", "possibilities": "a) Te esfuerzas por destacar sus cualidades positivas.\nb) Destacas lo positivo, pero también lo negativo.\nc) Me callo por no discutir si se habla de cosas negativas.\nd) Me uno al sentir de la mayoría.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "En las conversaciones de amigos:", "possibilities": "a) Te gusta llevar la iniciativa y ser el protagonista de la conversación.\nb) Prefieres escuchar a los demás.\nc) Intervienes cuando estás seguro de lo que dices.\nd) Intentas aprender algo de los demás.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Cuando pierde tu equipo o el deportista al que admiras:", "possibilities": "a) Lo pasas mal en tu interior y procuras dominarte.\nb) Te molestan las bromas de los rivales.\nc) Tiendes a justificar la derrota.\nd) Lo aceptas y eres capaz de reírte de eso.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Si estás haciendo cola en una tienda y se cuela una persona", "possibilities": "a) Te molestas, pero no dices nada\nb) Te da igual.\nc) Lo tomas con humor y le indicas que le dejas pasar\nd) Le llamas la atención y le recuerdas que aquello es una cola", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Invitas a jugar a la play a un amigo que nunca ha jugado y te gana", "possibilities": "a) Sonríes, le abrazas y le desconectas el mando.\nb) Piensas que ha hecho trampa y se lo recriminas.\nc) Es un juego, no merece la pena enfadarse y le invitas a otra partida.\nd) No haces nada, pero por dentro te enfadas contigo mismo.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Si un rival se comporta antideportivamente en un partido que al final ganas.", "possibilities": "a) Le das la mano por educación y te vas.\nb) Le das la mano y te jactas de haberle ganado.\nc) Le das la mano y procuras consolarle.\nd) Le das la mano a sus compañeros, pero a él no.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "En una competición on line de running con tus hijos y ves que ellos van por delante.", "possibilities": "a) Lo aceptas y les animas a que sigan corriendo\nb) Les animas a que sigan corriendo, pero intentas superarlos. \nc) Intentas ganar por todos los medios.\nd) Te da igual.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Un compañero de trabajo ha logrado más objetivos laborales durante el mes.", "possibilities": "a) Te duele interiormente y te propones ganar el mes que viene. \nb) Le restas méritos delante de los compañeros. Ha sido cuestión de suerte.\nc) Le felicitas por el éxito obtenido. Aceptas que ese mes ha sido mejor que tú.\nd) No le das importancia. Son rachas.  ", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Se pone verde el semáforo y el conductor de delante tarda en avanzar.", "possibilities": "a) Espero sin problemas\nb) Toco ligeramente el claxon para advertir de que ya se puede avanzar\nc) Me impaciento y espero que avance de una vez\nd) Toco el claxon con fuerza", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Se pone verde el semáforo y el vehículo de atrás hace sonar el claxon para advertirme de que ya se puede avanzar", "possibilities": "a) Me molesta.\nb) Me da igual.\nc) Le saludo con la mano agradeciendo el aviso\nd) Hago un aspaviento pidiendo tranquilidad", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Estoy viendo un partido por la televisión y queda claro el error arbitral contra mi equipo.", "possibilities": "a) Me da igual\nb) Me molesta, pero comprendo la difícil labor del árbitro.\nc) Me enfado y critico la labor arbitral.\nd) Pienso que ha sido intencionado. Un error así no puede ser casual.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Estoy viendo un partido y queda claro un error arbitral a favor de mi equipo.", "possibilities": "a) Pienso que la objetividad en el deporte no existe\nb) Me alegro. Lo importante es la victoria\nc) Me disgusta. Comprendo la dificultad de la labor arbitral.\nd) Me da igual.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Soy entrenador y tengo la información de que en el equipo contrario un jugador titular no puede ser alineado por sanción.", "possibilities": "a) Le advierto al entrenador contrario para evitar que le den el partido por perdido.\nb) Pienso que el problema no es mío y si al final perdiese el partido puedo impugnar el resultado\nc) No digo nada y acepto el resultado sea cual sea.\nd) Depende de la importancia del partido.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": " Recibes en casa una multa de tráfico por exceso de velocidad", "possibilities": "a) La abono cuanto antes para obtener el beneficio del pronto pago\nb) Me parece una injusticia que me hayan multado. No iba tan rápido\nc) Presento un recurso. Hay que intentar no pagar las multas.\nd) Me da igual. Soy consciente de que corro más de lo permitido.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Llego tarde a una cita", "possibilities": "a) Pongo una excusa inventada y me disculpo\nb) Explico el motivo por el que llego tarde y me disculpo\nc) Pido disculpas directamente.\nd) Me excuso sin más.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Sirven en la mesa – de mi casa- una comida que no me gusta", "possibilities": "a) La pruebo, digo que está muy buena y pongo la excusa de no tener apetito.\nb) Digo que esa comida no me gusta y la dejo\nc) Digo que está muy buena y me la como\nd) No digo nada y la como sin quejarme.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": " Si le preguntaran a mi pareja o a mi mejor amigo/a diría", "possibilities": "a) Me gusta discutir frecuentemente\nb) Discuto en raras ocasiones\nc) No discuto nunca\nd) Discuto, pero no me enfado", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "A punto de salir a trabajar por la mañana a uno de mis hijos se le cae el café sobre mi camisa. Elije una frase", "possibilities": "a) A ver si tienes más cuidado. \nb) No te preocupes.\nc) Que torpe eres.\nd) La que me has liado", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Si les preguntaran a las personas con las que hago deporte dirían", "possibilities": "a) Es de las que le gusta ganar siempre.\nb) A veces se enfada cuando las cosas no le salen bien.\nc) Le da igual perder que ganar.\nd) Compite con alegría y no le importa perder.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Una persona a la que quieres te pregunta cómo le queda una prenda que te parece horrible.", "possibilities": "a) Le digo lo que pienso directamente\nb) Le digo que le queda bien, para que no se sienta mal\nc) Pongo cara de duda, esperando que se dé cuenta de que no me gusta.\nd) Le digo que le queda bien pero que combinaría mejor con otras prendas.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Cuando alaban a un personaje público que no me cae bien por su capacidad profesional", "possibilities": "a) Pongo en duda sus cualidades. No es tan bueno como parece.\nb) No digo nada, aunque interiormente no esté de acuerdo\nc) Me uno a las alabanzas de los demás. \nd) Reconozco sus cualidades, aunque no me caiga bien.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Si en el colegio o en el club piden voluntarios para ayudar en los equipos", "possibilities": "a) Me ofrezco a ayudar\nb) No puedo por falta de tiempo\nc) No puedo, pero intento animar a alguien que pueda.\nd) Ayudo en caso de insistencia y si no hay más remedio.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Los deportes que más me gustan", "possibilities": "a) Gimnasio y/o correr\nb) No me gusta hacer deporte\nc) Deportes colectivos (Fútbol, Basket, etc)\nd) Deportes de pareja (Pádel, tenis)", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "El equipo de mi hijo ha perdido el partido injustamente", "possibilities": "a) Le ánimo y le hago ver que la injusticia forma parte del deporte\nb) Le hago ver que la culpa no es suya, sino del árbitro o el entrenador\nc) Comparto su tristeza y le hablo de la suerte en el deporte.\nd) Le ánimo y pienso en lo bien que le vienen estas cosas para formarse.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Si considero que me han tratado injustamente en un centro comercial", "possibilities": "a) Presento una reclamación formal\nb) Hago constar la injusticia ante los empleados\nc) Me marcho sin decir nada.\nd) Me marcho sin decir nada, pero se lo comento a mis amigos.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "La cola del supermercado avanza muy lentamente", "possibilities": "a) Me impaciento y busco otras colas en las que haya menos gente\nb) Me da igual. Espero sin preocuparme\nc) Pienso en la Ley de Muphy. La cola lenta siempre será en la que yo me ponga\nd) Intento distraerme e incluso dejo pasar al de atrás si lleva menos productos que yo.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "En las derrotas de mi equipo", "possibilities": "a) Me dan igual y no afectan a mi estado de animo\nb) Me ponen triste y me cuesta sumirlas\nc) Me ponen triste, pero se me pasa enseguida\nd) Me enfadan.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Mis hijos/ amigos dirían de mí que", "possibilities": "a) Comprendo los errores\nb) Soy muy exigente con ellos\nc) Soy un poco “cascarrabias”\nd) Estoy muy poco tiempo con ellos.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Me considero una persona agresiva o tranquila", "possibilities": "a) Más agresiva que tranquila. Pierdo los nervios con facilidad\nb) Soy más bien tranquilo. Es muy difícil que pierda los nervios\nc) Depende del momento. En ocasiones injustas salto\nd) Nunca me meto en líos. ", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Si un hijo/a miente", "possibilities": "a) Me enfado y le exijo que diga la verdad\nb) Le pido explicaciones y que me diga la verdad\nc) Le hago ver que mentir está mal\nd) No digo nada. Ya se enterará de que me he dado cuenta.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Después de reacciones de enfado o discusión", "possibilities": "a) Me cuesta vencer el sentimiento negativo. Se queda el rencor\nb) Suelo pedir perdón a la persona con la que he discutido\nc) Lo dejo estar. El tiempo lo cura todo\nd) El enfado se me pasa enseguida y no le doy importancia.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "En las tareas del hogar:", "possibilities": "a) Somos un equipo. Todos arrimamos el hombro.\nb) Llego a casa muy cansado. Trabajo fuera. Otros se ocupan\nc) En ocasiones ayudo\nd) Si puedo me escaqueo", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Practico deporte", "possibilities": "a) Casi nunca. No me gusta la actividad física\nb) Varios días a la semana\nc) Dos o tres días al mes\nd) Solamente si me llaman los amigos", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "En una discusión entre amigos", "possibilities": "a) Intento parar la discusión.\nb) No digo nada, En esos casos lo mejor es evitar tomar posición.\nc) Apoyo al que considero tiene la razón.\nd) Apoyo al que me cae mejor de los dos.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Suelo pedir perdón a mi pareja o a mis amigos cuando creo que no he estado bien.", "possibilities": "a) Nunca\nb) Frecuentemente\nc) Solo cuando se ha tratado de una cuestión importante\nd) Siempre que la otra persona me lo haya pedido antes", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "En un partido en el que juega alguno de mis hijos un padre del equipo insulta al árbitro", "possibilities": "a) Le pido que mida sus palabras y no insulte al árbitro\nb) No digo nada. En esos casos suele ser peor y puede enfadarse conmigo\nc) Depende de la situación. Si solo ha sido una cuestión puntual, no digo nada\nd) Me alejo del lugar para evitar que también a mí me señalen como antideportivo", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Llueve y hace frio a mi hijo/a no le apetece ir a entrenar y a mí me apetece quedarme en casa.", "possibilities": "a) Lo llevo al entrenamiento.\nb) Nos quedamos en casa.\nc) Llamo para avisar de que mi hijo se encuentra mal y no irá a entrenar\nd) Llamo para avisar que el hijo no irá a entrenar por el mal tiempo que hace.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Mi hijo/a es expulsado/a de un partido por comportamiento antideportivo", "possibilities": "a) Le abronco directamente haciéndole ver lo malo de la acción\nb) No digo nada. Creo que ha sido expulsado injustamente\nc) No digo nada. Hablaré posteriormente con él para corregirle\nd) No digo nada. Hablaré posteriormente con él y le pondré un castigo para que aprenda.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Utilizo el móvil mientras comemos en familia", "possibilities": "a) Nunca.\nb) A veces\nc) Lo tengo sobre la mesa por si hay algún aviso o llamada importante.\nd) Ni lo utilizo yo ni permito que lo utilicen los demás.", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Que busco en el deporte de mis hijos", "possibilities": "a) Que se divierta y se relacione con los demás\nb) Que pueda desarrollar plenamente sus aptitudes físico –deportivas\nc) Que se forme bien físicamente\nd) Que pueda llegar a ser un campeón en la disciplina elegida", "answer": ["1", "4", "2", "3"], "explanation": "" }, { "question": "Elige la frase con la que te identificas", "possibilities": "a) Siempre alegres para hacer felices a los demás\nb) Trata a los demás como te gustaría que te traten a ti mismo\nc) Ande yo caliente y ríase la gente\nd) La caridad empieza por uno mismo", "answer": ["1", "4", "2", "3"], "explanation": "" }], "list": [] };
+
+    var singleton;
+    var place;
+
+    function reloadStorage() {
+      var output = JSON.parse(window.localStorage.getItem("singleton"));
+      if (output != null) {
+        singleton = output;
+      } else {
+        singleton = {
+          'data': [], //Data stores questions
+          'list': [], //List stores the selected answer
+        };
+      }
+      place = {
+        'current': -1,
+        'correct': 0, //gained points
+        'answered': 0,
+        'editMode': false,
+        'justOneEdit': false,
+        'showAllQuestions': false,
+        'showAllControls': false
+      };
+      var list = singleton.list;
+      var data = singleton.data;
+      for (var i = 0; i < list.length; i++) {
+        if (list[i] == undefined) {
+          place.current = place.current == -1 ? i : place.current;
+          continue;
+        }
+        alert(place.correct);
+        place.correct += parseInt(data[i].answer[parseInt(list[i])]);
+        alert(parseInt(list[i]));
+      }
+      place.current = place.current == -1 ? list.length : place.current;
+      if (place.current == singleton.data.length) {
+        // Return to the first question if finished
+        place.current = 0;
+      }
+    }
+
+    function saveStorage() {
+      window.localStorage.setItem("singleton", JSON.stringify(singleton));
+    }
+
+    // Header functions
+    function toggleControlsShow() {
+      place.showAllControls = !place.showAllControls;
+      refreshControls();
+    }
+
+    function toggleQuestionsShow() {
+      place.showAllQuestions = !place.showAllQuestions;
+      refreshPage();
+    }
+
+    function toggleEditMode(justOne) {
+      place.editMode = !place.editMode;
+      place.justOneEdit = justOne;
+      refreshPage();
+    }
+
+    function downloadAsFile() {
+      var element = document.createElement('a');
+      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(window.localStorage.getItem("singleton")));
+      element.setAttribute('download', 'singleton.json');
+      element.style.display = 'none';
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+    }
+
+    function uploadFile() {
+      var files = document.getElementById('files').files;
+      if (!files.length) {
+        alert('Please select one file!');
+        return;
+      }
+      var reader = new FileReader();
+      reader.onloadend = function (evt) {
+        if (evt.target.readyState == FileReader.DONE) {
+          var fileContents = JSON.parse(evt.target.result); // Check we can parse the JSON
+          singleton = fileContents;
+          saveStorage();
+          initialize();
+        }
+      };
+      reader.readAsText(files[0]);
+    }
+
+    function defaultQuestions() {
+      if (!confirm("Si continúas, se restablecerán las preguntas por defecto. ¿Estás seguro?")) {
+        return;
+      }
+      singleton = defaultSingleton;
+      saveStorage();
+      location.reload();
+    }
+
+    function resetQuestions() {
+      if (!confirm("Si continúas, tanto las preguntas como las contestaciones se perderán. ¿Estás seguro?")) {
+        return;
+      }
+      window.localStorage.removeItem("singleton");
+      location.reload();
+    }
+
+    function resetAnswers() {
+      if (!confirm("Si continúas, las contestaciones se perderán (los enunciados se mantendrán). ¿Estás seguro?")) {
+        return;
+      }
+      singleton.list = [];
+      saveStorage();
+      location.reload();
+    }
+
+    function addQuestion() {
+      singleton.data[singleton.data.length] = {
+        "question": "",
+        "possibilities": "",
+        "answer": [],
+        "explanation": ""
+      };
+      place.current = singleton.data.length - 1;
+      place.editMode = true;
+      refreshPage();
+      refreshNavigation();
+    }
+
+    function removeQuestion() {
+      var questionId = place.current;
+      if (!confirm("Si continúas, esta pregunta se perderá por completo. ¿Estás seguro?")) {
+        return;
+      }
+      //Last answer is singleton.list.length-1
+      if (questionId < singleton.list.length) {
+        singleton.list.splice(questionId, 1);
+      }
+      singleton.data.splice(questionId, 1);
+      saveStorage();
+      refreshPage();
+    }
+
+    // Q&A functions
+    function answerQuestion(questionId, answer) {
+      place.correct += parseInt(singleton.data[questionId].answer[answer]);
+      singleton.list[questionId] = answer;
+      saveStorage();
+      refreshPage();
+    }
+
+    function showQuestion(mainDiv, questionId) {
+      var givenAnswer = singleton.list[questionId];
+      var singleNode = document.createElement("div");
+      var question = document.createElement("pre");
+      question.appendChild(document.createTextNode(questionId.toString() + ". " + singleton.data[questionId].question));
+      var possibilities = document.createElement("div");
+      var lines = singleton.data[questionId].possibilities.split('\n');
+      var buttons = [];
+      for (var j = 0; j < lines.length; j++) {
+        var button = document.createElement("button");
+        button.setAttribute("answer", j);
+        button.onclick = function () {
+          answerQuestion(this.parentElement.parentElement.getAttribute("questionId"), this.getAttribute("answer"));
+        };
+        button.appendChild(document.createTextNode(lines[j]));
+        buttons[j] = button;
+        possibilities.appendChild(button);
+      }
+      singleNode.setAttribute("class", "question");
+      singleNode.setAttribute("questionId", questionId);
+      singleNode.appendChild(question);
+      singleNode.appendChild(possibilities);
+      if (givenAnswer != undefined) {
+        for (var i = 0; i < buttons.length; i++) {
+          buttons[i].setAttribute("disabled", "true");
+          if (buttons[i].getAttribute("answer") == givenAnswer) {
+            buttons[i].classList.add("correctAnswer");
+          }
+        }
+        if (singleton.data[questionId].explanation != "") {
+          var explanation = document.createElement("pre");
+          explanation.appendChild(document.createTextNode(singleton.data[questionId].explanation));
+          singleNode.appendChild(explanation);
+        }
+      }
+      mainDiv.appendChild(singleNode);
+    }
+
+    function showEditQuestion(mainDiv) {
+      var questionId = place.current;
+      var singleNode = document.createElement("div");
+      singleNode.setAttribute("class", "editQuestion");
+      var identifier = document.createElement("h2");
+      identifier.appendChild(document.createTextNode(questionId.toString()));
+      singleNode.appendChild(identifier);
+      var question = document.createElement("textarea");
+      question.setAttribute("id", "question");
+      question.setAttribute("placeholder", "Pregunta");
+      question.appendChild(document.createTextNode(singleton.data[questionId].question));
+      singleNode.appendChild(question);
+      var possibilities = document.createElement("textarea");
+      possibilities.setAttribute("id", "possibilities");
+      possibilities.setAttribute("placeholder", "Posibilidades");
+      possibilities.appendChild(document.createTextNode(singleton.data[questionId].possibilities));
+      singleNode.appendChild(possibilities);
+      var answer = document.createElement("input");
+      answer.setAttribute("type", "textarea");
+      answer.setAttribute("id", "answer");
+      answer.setAttribute("placeholder", "Puntuaciones (separadas por espacios)");
+      answer.setAttribute("value", singleton.data[questionId].answer.join(" "));
+      singleNode.appendChild(answer);
+      var explanation = document.createElement("textarea");
+      explanation.setAttribute("id", "explanation");
+      explanation.setAttribute("placeholder", "Explicación (no es imprescindible)");
+      explanation.appendChild(document.createTextNode(singleton.data[questionId].explanation));
+      singleNode.appendChild(explanation);
+      var submit = document.createElement("button");
+      submit.setAttribute("onclick", "editQuestion()");
+      submit.appendChild(document.createTextNode("Enviar"));
+      singleNode.appendChild(submit);
+      mainDiv.appendChild(singleNode);
+    }
+
+    function editQuestion() {
+      if (!confirm("Si continúas, esta pregunta cambiará y no podrás deshacer los cambios")) {
+        return;
+      }
+      var questionItems = ["question", "possibilities", "explanation"];
+      for (var i = 0; i < questionItems.length; i++) {
+        singleton.data[place.current][questionItems[i]] = document.getElementById(questionItems[i]).value;
+      }
+      singleton.data[place.current]["answer"] = document.getElementById("answer").value.split(" ");
+      saveStorage();
+      if (place.justOneEdit) {
+        place.justOneEdit = false;
+        place.editMode = false;
+      }
+      refreshPage();
+    }
+
+    function refreshControls() {
+      if (!place.showAllControls) {
+        document.getElementById('allControls').style.display = 'none';
+      } else {
+        document.getElementById('allControls').style.display = 'block';
+      }
+    }
+
+    function refreshPage() {
+      var mainDiv = document.getElementById("main");
+      mainDiv.innerHTML = "";
+      mainDiv.style.marginTop = (document.getElementsByTagName("header")[0].offsetHeight + 15).toString() + "px";
+      if (place.editMode) {
+        showEditQuestion(mainDiv);
+      } else if (place.showAllQuestions) {
+        for (var i = 0; i < singleton.data.length; i++) {
+          showQuestion(mainDiv, i);
+        }
+      } else if (singleton.data.length > 0) {
+        showQuestion(mainDiv, place.current);
+      }
+      var total = singleton.data.length;
+      var answered = singleton.list.length;
+      var countPercentage = answered * 100 / (total);
+      var countPercentageElem = document.getElementById('countPercentage');
+      document.getElementById('correctCount').innerHTML = place.correct.toString();
+      countPercentageElem.innerHTML = Number.parseFloat(countPercentage).toFixed(2) + "%";
+    }
+
+    //Navigation
+    function changeCurrentQuestion(newQuestionId) {
+      newQuestionId = parseInt(newQuestionId);
+      if (newQuestionId >= singleton.data.length || newQuestionId < 0) {
+        //console.log("Question out of range");
+        return;
+      }
+      place.current = newQuestionId;
+      if (document.getElementById("navCurrentQuestion").value != place.current) {
+        refreshNavigation();
+      }
+      refreshPage();
+    }
+
+    function refreshNavigation() {
+      document.getElementById("navCurrentQuestion").value = place.current;
+    }
+
+    function initialize() {
+      reloadStorage();
+      refreshPage();
+      refreshControls();
+      refreshNavigation();
+    }
+  </script>
+</head>
+
+<body onload="initialize()">
+  <header>
+    <h1>Test de deportividad</h1>
+    <p>
+      Puntuación: <span id="correctCount">0</span>
+      (<span id="countPercentage">0</span> completado)
+      <button onclick="defaultQuestions()">Cargar preguntas por defecto</button>
+      <button onclick="toggleControlsShow()">Todos los controles</button>
+      <button onclick="toggleEditMode(true)">Editar</button>
+    </p>
+    <p id="allControls" style="display: none">
+      <input type="file" id="files" name="file" oninput="uploadFile()" />
+      <button onclick="downloadAsFile()">Backup</button>
+      <button onclick="toggleQuestionsShow()">Mostrar todo</button>
+      <!-- Creator zone -->
+      <button onclick="toggleEditMode(false)" class="correctAnswer">Modo de edición</button>
+      <button onclick="addQuestion()" class="correctAnswer">Añadir pregunta</button>
+      <!-- Danger zone -->
+      <button onclick="resetQuestions()" class="wrongAnswer">Borrar preguntas</button>
+      <button onclick="resetAnswers()" class="wrongAnswer">Borrar contestaciones</button>
+      <button onclick="removeQuestion()" class="wrongAnswer">Eliminar esta pregunta</button>
+    </p>
+  </header>
+  <div id="main"></div>
+  <div id="navigation">
+    <button onclick="changeCurrentQuestion(place.current-1)">
+      <- </button>
+        <input id="navCurrentQuestion" type="text" oninput="changeCurrentQuestion(this.value)" value="0"></input>
+        <button onclick="changeCurrentQuestion(place.current+1)"> -> </button>
+  </div>
+</body>
+
+</html>

@@ -177,9 +177,7 @@
           place.current = place.current == -1 ? i : place.current;
           continue;
         }
-        alert(place.correct);
         place.correct += parseInt(data[i].answer[parseInt(list[i])]);
-        alert(parseInt(list[i]));
       }
       place.current = place.current == -1 ? list.length : place.current;
       if (place.current == singleton.data.length) {

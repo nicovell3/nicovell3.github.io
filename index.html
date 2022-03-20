@@ -91,6 +91,9 @@
         background-color: red;
         color: white;
       }
+      .selectedAnswer {
+        background-color: blue;
+      }
       p, pre {
         font-weight: bold;
       }
@@ -150,11 +153,7 @@
             place.current = place.current == -1 ? i : place.current;
             continue;
           }
-          if (list[i] == data[i].answer) {
-            place.correct++;
-          } else {
-            place.failed++;
-          }
+          evaluateAnswer(i);
         }
         place.current = place.current == -1 ? list.length : place.current;
         if (place.current == singleton.data.length) {
@@ -279,20 +278,41 @@
         refreshPage();
       }
 
+      function evaluateAnswer(questionId) {
+        if (singleton.data[questionId].answer.length == singleton.list[questionId].length) {
+          var answerCorrect = true;
+          var answer = singleton.data[questionId].answer;
+          for (var i = 0; i < answer.length; i++) {
+            if (!singleton.list[questionId].includes(answer.charAt(i))) {
+              answerCorrect = false;
+              break;
+            }
+          }
+          if (answerCorrect) {
+            place.correct++;
+          } else {
+            place.failed++;
+          }
+        }
+      }
+
       // Q&A functions
       function answerQuestion(questionId, answer) {
-        if (singleton.data[questionId].answer == answer) { 
-          place.correct++;
-        } else {
-          place.failed++;
+        if (singleton.list[questionId] == undefined) {
+          singleton.list[questionId] = "";
         }
-        singleton.list[questionId] = answer;
+        if (singleton.list[questionId].includes(answer)) {
+          singleton.list[questionId] = singleton.list[questionId].replace(answer,'');
+        } else {
+          singleton.list[questionId] += answer;
+          evaluateAnswer(questionId);
+        }
         saveStorage();
         refreshPage();
       }
 
       function showQuestion(mainDiv, questionId) {
-        var givenAnswer = singleton.list[questionId];
+        var givenAnswer = singleton.list[questionId] != undefined ? singleton.list[questionId] : "";
         var singleNode = document.createElement("div");
         var question = document.createElement("pre");
         question.appendChild(document.createTextNode(questionId.toString() + ". " + singleton.data[questionId].question));
@@ -301,11 +321,15 @@
         var buttons = [];
         for (var j = 0; j < lines.length; j++) {
           var button = document.createElement("button");
-          button.setAttribute("answer", String.fromCharCode(65+j));
+          var answerValue = String.fromCharCode(65+j)
+          button.setAttribute("answer", answerValue);
           button.onclick = function() {
             answerQuestion(this.parentElement.parentElement.getAttribute("questionId"), this.getAttribute("answer"));
           };
           button.appendChild(document.createTextNode(lines[j]));
+          if (singleton.list[questionId] != undefined && singleton.list[questionId].includes(answerValue)) {
+            button.classList.add("selectedAnswer");
+          }
           buttons[j] = button;
           possibilities.appendChild(button);
         }
@@ -313,12 +337,12 @@
         singleNode.setAttribute("questionId", questionId);
         singleNode.appendChild(question);
         singleNode.appendChild(possibilities);
-        if (givenAnswer != undefined) {
+        if (givenAnswer.length == singleton.data[questionId].answer.length) {
           for (var i = 0; i < buttons.length; i++) {
             buttons[i].setAttribute("disabled", "true");
-            if (singleton.data[questionId].answer == buttons[i].getAttribute("answer")) {
+            if (singleton.data[questionId].answer.includes(buttons[i].getAttribute("answer"))) {
               buttons[i].classList.add("correctAnswer");
-            } else if (buttons[i].getAttribute("answer") == givenAnswer) {
+            } else if (singleton.list[questionId].includes(buttons[i].getAttribute("answer"))) {
               buttons[i].classList.add("wrongAnswer");
             }
           }

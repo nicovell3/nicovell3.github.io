@@ -126,6 +126,104 @@
       "use strict";
       var singleton;
       var place;
+      var googleApiKey = 'AIzaSyBAtONQ5CmiL2640LHSuhRECB3yRJdXcnk';
+      var googleClientID = '1028129665434-kbp8fhraqkq49ch7pvki1vjqj4cdnfnk.apps.googleusercontent.com';
+      var googleScopes = 'https://www.googleapis.com/auth/drive.file';
+      var googleFileName = 'TestMakerData.json';
+      var googleFileID = "";
+
+      function googleHandleClientLoad() {
+        gapi.load('client', googleInitClient);
+      }
+
+      function googleInitClient() {
+        gapi.client.init({
+          apiKey: googleApiKey,
+          clientId: googleClientID,
+          scope: googleScopes
+        }).then(function(){ //onInit
+          console.log("Authentication successful");
+        },
+        function() { //onError
+          alert("Authentication error. Ensure third party cookies are enabled.");
+        });
+      }
+
+      function googleSignIn() {
+        gapi.auth2.getAuthInstance().signIn();
+      }
+
+      function createDriveFile(successFunction) {
+        gapi.client.request({
+          'path': '/drive/v3/files',
+          'method': 'POST',
+          'uploadType': 'media',
+          'body': {
+            'name': googleFileName
+          }
+        }).then(function(resp) { //onSuccess
+          googleFileID = resp.result.id;
+          console.log("Created file with id", googleFileID);
+          alert("File creation successful with filename "+googleFileName);
+          successFunction();
+        }, function(resp) { //onError
+          console.log("Can't create file", resp);
+          alert("Error creating file");
+        });
+      }
+
+      function getDriveFileID(successFunction) {
+        gapi.client.request({
+          'path': '/drive/v3/files',
+          'method': 'GET',
+          'body': {
+            'fields': 'files'
+          }
+        }).then(function(resp) { //onSuccess
+          if (resp.result.files.length > 0) {
+            googleFileID = resp.result.files[0].id;
+            console.log("Found file with id", googleFileID);
+            successFunction();
+          } else {
+            alert("No file found. Creating one.");
+            createFile(successFunction);
+          }
+        }, function(resp) { //onError
+          console.log("Can't list files", resp);
+          alert("Couldn't list files");
+        });
+      }
+
+      function readDataFromDrive() {
+        gapi.client.request({
+          'path': '/drive/v3/files/'+googleFileID,
+          'method': 'GET',
+          'params': {
+            'alt': 'media'
+          },
+          'body': {
+            'fields': '*'
+          }
+        }).then(function(resp) { //onSuccess
+          singleton = resp.result;
+          saveStorage();
+          initialize();
+        }, function(resp) { //onError
+          console.log("Can't get file", resp);
+          alert("Couldn't get file data");
+        });
+      }
+
+      function writeDataToDrive() {
+        fetch('https://www.googleapis.com/upload/drive/v3/files/'+googleFileID+'?uploadType=media', {
+          method: 'PATCH',
+          headers: new Headers({'Authorization': 'Bearer ' + gapi.auth.getToken().access_token}),
+          body: JSON.stringify(singleton)
+        }).then(res => res.json()).then(res => {
+          console.log(res);
+          alert("Saved to Google Drive");
+        });
+      }
 
       function reloadStorage() {
         var output = JSON.parse(window.localStorage.getItem("singleton"));
@@ -475,6 +573,10 @@
         refreshNavigation();
       }
     </script>
+    <script async defer src="https://apis.google.com/js/api.js"
+      onload="this.onload=function(){};googleHandleClientLoad();"
+      onreadystatechange="if (this.readyState === 'complete') this.onload();">
+    </script>
   </head>
   <body onload="initialize()">
     <header>
@@ -496,6 +598,10 @@
         <button onclick="resetQuestions()" class="wrongAnswer">Reset questions</button>
         <button onclick="resetAnswers()" class="wrongAnswer">Reset answers</button>
         <button onclick="removeQuestion()" class="wrongAnswer">Remove current question</button>
+        <!-- Google drive -->
+        <button onclick="googleSignIn()">Sign in</button>
+        <button onclick="getDriveFileID(readDataFromDrive)">Load from Drive</button>
+        <button onclick="getDriveFileID(writeDataToDrive)">Save to Drive</button>
       </p>
     </header>
     <div id="main"></div>

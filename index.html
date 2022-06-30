@@ -545,7 +545,7 @@
         document.getElementById('correctCount').innerHTML = place.correct.toString();
         document.getElementById('wrongCount').innerHTML = place.failed.toString();
         countPercentageElem.innerHTML = Number.parseFloat(countPercentage).toFixed(2) + "%";
-        countPercentageElem.setAttribute("class", (countPercentage < 80 ? "badPercentage" : "goodPercentage") );
+        countPercentageElem.setAttribute("class", (countPercentage < 65 ? "badPercentage" : "goodPercentage") );
       }
 
       //Navigation

@@ -585,6 +585,7 @@
         (<span id="countPercentage">0</span>)
         <button onclick="toggleControlsShow()">All controls</button>
         <button onclick="toggleEditMode(true)">Edit</button>
+        <button onclick="removeQuestion()" class="wrongAnswer">Remove current question</button>
       </p>
       <p id="allControls" style="display: none">
         <input type="file" id="files" name="file" oninput="uploadFile()" />
@@ -597,7 +598,6 @@
         <!-- Danger zone -->
         <button onclick="resetQuestions()" class="wrongAnswer">Reset questions</button>
         <button onclick="resetAnswers()" class="wrongAnswer">Reset answers</button>
-        <button onclick="removeQuestion()" class="wrongAnswer">Remove current question</button>
         <!-- Google drive -->
         <button onclick="googleSignIn()">Sign in</button>
         <button onclick="getDriveFileID(readDataFromDrive)">Load from Drive</button>

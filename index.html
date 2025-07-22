@@ -453,11 +453,15 @@
           }
           if (singleton.data[questionId].references != "") {
             var references = document.createElement("p");
-            var link = document.createElement("a");
-            link.setAttribute("href", singleton.data[questionId].references);
-            link.setAttribute("target", "_blank");
-            link.appendChild(document.createTextNode("Link to reference"));
-            references.appendChild(link);
+            if (singleton.data[questionId].references.startsWith("http")) {
+              var link = document.createElement("a");
+              link.setAttribute("href", singleton.data[questionId].references);
+              link.setAttribute("target", "_blank");
+              link.appendChild(document.createTextNode("Link to reference"));
+              references.appendChild(link);
+            } else {
+              references.appendChild(document.createTextNode(singleton.data[questionId].references));
+            }
             singleNode.appendChild(references);
           }
         }

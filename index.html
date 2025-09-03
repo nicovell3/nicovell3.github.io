@@ -188,7 +188,7 @@
             successFunction();
           } else {
             alert("No file found. Creating one.");
-            createFile(successFunction);
+            createDriveFile(successFunction);
           }
         }, function(resp) { //onError
           console.log("Can't list files", resp);

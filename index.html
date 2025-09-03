@@ -572,11 +572,22 @@
         document.getElementById("navCurrentQuestion").value = place.current;
       }
 
+      function setKeyShortcuts() {
+        document.addEventListener('keydown', e => {
+          if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            console.log('CTRL + S');
+            editQuestion();
+          }
+        });
+      }
+
       function initialize() {
         reloadStorage();
         refreshPage();
         refreshControls();
         refreshNavigation();
+        setKeyShortcuts();
       }
     </script>
     <script async defer src="https://apis.google.com/js/api.js"

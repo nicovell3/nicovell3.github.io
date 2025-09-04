@@ -574,10 +574,16 @@
 
       function setKeyShortcuts() {
         document.addEventListener('keydown', e => {
-          if (e.ctrlKey && e.key === 's') {
-            e.preventDefault();
-            console.log('CTRL + S');
-            editQuestion();
+          if (e.ctrlKey) {
+            if (e.key === 's') {
+              e.preventDefault();
+              console.log('Handling CTRL + S');
+              editQuestion();
+            } else if (e.key === 'a') {
+              e.preventDefault();
+              console.log('Handling CTRL + A');
+              addQuestion();
+            }
           }
         });
       }

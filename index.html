@@ -584,6 +584,20 @@
               console.log('Handling CTRL + A');
               addQuestion();
             }
+          } else if (document.activeElement.type != 'textarea') {
+            if (e.key === 'a') {
+              document.querySelector("[answer=A]")?.click()
+            } else if (e.key === 'b') {
+              document.querySelector("[answer=B]")?.click()
+            } else if (e.key === 'c') {
+              document.querySelector("[answer=C]")?.click()
+            } else if (e.key === 'd') {
+              document.querySelector("[answer=D]")?.click()
+            } else if (e.keyCode == 39) { //Arrow right
+              changeCurrentQuestion(place.current+1)
+            } else if (e.keyCode == 37) { //Arrow left
+              changeCurrentQuestion(place.current-1)
+            }
           }
         });
       }
@@ -629,9 +643,9 @@
     </header>
     <div id="main"></div>
     <div id="navigation">
-      <button onclick="changeCurrentQuestion(place.current-1)"><</button>
+      <button id="navPrevQuestion" onclick="changeCurrentQuestion(place.current-1)"><</button>
       <input id="navCurrentQuestion" type="text" oninput="changeCurrentQuestion(this.value)" value="0"></input>
-      <button onclick="changeCurrentQuestion(place.current+1)">></button>
+      <button id="navNextQuestion" onclick="changeCurrentQuestion(place.current+1)">></button>
     </div>
   </body>
 </html>
